@@ -178,8 +178,9 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
 
     # Figure out the correct path based on the contents of dirfr.
     path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename))
-    # For ease of use, make all slashes normal slashes.
+    # To prevent weird bugs, replace all backslashes with slashes.
     path = path.replace("\\", "/")
+    dirfr = dirfr.replace("\\", "/")
 
     # Make parent dirs if they don't exist already.
     if not os.path.exists(f"./fs/{user.name}/{dirfr}"):
