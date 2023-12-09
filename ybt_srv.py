@@ -5,6 +5,7 @@ This is the server-side script for YBT.
 """
 import os
 import json
+import uvicorn
 import genuid
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
@@ -264,3 +265,6 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
     #     print(dir)
 
     return {"message": f"Successfully uploaded {file.filename}"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0")
