@@ -100,7 +100,7 @@ class FileSystem():
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/api")
 def root():
     return "Hello, world!"
 
@@ -135,6 +135,18 @@ def cuser(usr: str, psw: str):
         }, f, indent=2)
 
     return 200
+
+@app.get("/api/users/auth")
+def guser(usr: str, psw: str):
+    # Load the UserManifest
+    with open(USR_MANIFEST, "r") as f:
+        data = json.load(f)
+    
+    for user in data["users"]:
+        if user["username"] == usr and user["password"] == hashlib.sha384(psw.encode()).hexdigest():
+            return {"content": "Authed user!"}
+    
+    raise HTTPException(401, "Failed to auth.")
 
 @app.post("/api/fs/put")
 def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
@@ -222,7 +234,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
             exists = False
             for i, subdir in enumerate(current_manifest_entry):
                 subdir: dict
-                if dir in list(subdir.keys()):
+                if type(subdir) == dict and dir in list(subdir.keys()):
                     current_manifest_entry = current_manifest_entry[i][dir]
                     exists = True
                     break
