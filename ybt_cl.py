@@ -53,9 +53,12 @@ if os.path.exists("./ybt.json"):
         r = requests.get(BASE_URL+f"users/auth?usr={config["username"]}&psw={config["password"]}")
         if r.status_code == 200:
             print("OK!")
-        elif r.status_code == 404:
+        elif r.status_code == 401:
             print("FAILED: Failed to login user. Ensure both your username and password is correct.")
             sys.exit(1)
+        else:
+            print("FAILED: Could not authorize for an unknown reason.")
+            sys.exit()
     else:
         print("FAILED: Config is invalid.")
         sys.exit(1)

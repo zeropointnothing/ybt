@@ -191,6 +191,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
             while contents := file.file.read(1024 * 1024):
                 f.write(contents)
     except Exception as e:
+        print(e)
         raise HTTPException(400, f"There was an error uploading the file: {e}")
     finally:
         file.file.close()
