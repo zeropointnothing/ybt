@@ -5,6 +5,7 @@ This is the server-side script for YBT.
 """
 import os
 import json
+import genuid
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
@@ -83,6 +84,16 @@ class FileSystem():
                 return json.load(f)
         except FileNotFoundError:
             raise self.NoSuchUser(f"User '{self.__user.name}' does not exist, or their manifest is missing.")
+    
+    def dumpManifest(self, data: dict) -> dict:
+        """
+        Same as loadManifest, but dumps instead.
+        """
+        try:
+            with open(self.__man_path, "w") as f:
+                return json.dump(data, f, indent=2)
+        except FileNotFoundError:
+            raise self.NoSuchUser(f"User '{self.__user.name}' does not exist, or their manifest is missing.")
 
 # API #
 
@@ -95,6 +106,7 @@ def root():
 
 @app.post("/api/users/create")
 def cuser(usr: str, psw: str):
+    # Load the UserManifest
     with open(USR_MANIFEST, "r") as f:
         data = json.load(f)
     
@@ -102,6 +114,7 @@ def cuser(usr: str, psw: str):
         if user["username"] == usr:
             raise HTTPException(409, "Account already exists.")
 
+    # Add the new user to the UserManifest
     with open(USR_MANIFEST, "w") as f:
         data["users"].append({"username": usr, "password": hashlib.sha384(psw.encode()).hexdigest()})
 
@@ -111,7 +124,6 @@ def cuser(usr: str, psw: str):
     os.mkdir(f"./fs/{usr}")
 
     # Create their manifest.
-
     with open(f"./fs/{usr}/manifest.json", "w") as f:
         # Files are organized like so:
         # dict_keys = directory
@@ -130,18 +142,16 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
     Put File.
 
     The file attached to this request (if it meets the requirements) will be placed inside
-
     `fs/USERNAME` if the user exists and can be authorized.
 
     DirFR (Directory From Root) allows for folder creation. It will be appended before the file name.
 
-    ex. / = fs/NAME/FILE, /docs = fs/NAME/docs/FILE
+    ex. / = `fs/NAME/FILE`, /docs = `fs/NAME/docs/FILE`
     """
     try:
         user = User(usr, psw)
     except PermissionError:
         raise HTTPException(401, "Failed to auth.")
-
 
     # Load the user's manifest.
     try:
@@ -155,6 +165,8 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
 
     # Figure out the correct path based on the contents of dirfr.
     path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename))
+    # For ease of use, make all slashes normal slashes.
+    path = path.replace("\\", "/")
 
     # Make parent dirs if they don't exist already.
     if not os.path.exists(f"./fs/{user.name}/{dirfr}"):
@@ -171,8 +183,72 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
         file.file.close()
 
     # Finally, return a success message and update the manifest.
-    # for i, dir in enumerate(path.split("/")):
-    #     if i != len(path.split("/")) -1:
-    #         manifest[""]
+
+    # Loop through all the sub dirs minus the three leading dirs since we know those lead to root. (fs/USER)
+    # This gets its own variable because I type it out too much lol
+    base_split = path.split("/")[2:]
+    # TThe first value should be "root". AKA ./fs/USER/
+    base_split[0] = ""
+
+    dirs = []
+    # For Manifest assembling. This starts at root.
+    current_manifest_entry = manifest["root"]
+    for i, dir in enumerate(base_split):
+        dirs.append(dir)
+        joined_path = f"./fs/{user.name}/{'/'.join(dirs)}"
+        
+        # Use the joined path to determine whether the path is a directory or a file.
+        is_dir = os.path.isdir(joined_path)
+        is_file = os.path.isfile(joined_path)
+        is_root = True if i == 0 else False
+
+        # print(f"File/Directory: {dir}")
+        # print(f"Joined path: {joined_path}")
+        # print(f"Is dir: {os.path.isdir(joined_path)}")
+        # print(f"Is file: {os.path.isfile(joined_path)}")
+        # print(f"Is root: {is_root}\n\n")
+
+        # The path is a directory.
+        if is_dir:
+            # Root already exists. We don't need to make another one.
+            if dir == "":
+                continue
+            
+            # print(manifest)
+            # print(current_manifest_entry)
+            # current_manifest_entry: list
+
+            # Check if the folder exists already. If it does, move into it.
+            exists = False
+            for i, subdir in enumerate(current_manifest_entry):
+                subdir: dict
+                if dir in list(subdir.keys()):
+                    current_manifest_entry = current_manifest_entry[i][dir]
+                    exists = True
+                    break
+            if exists:
+                continue
+
+            # Add the folder into the manifest.
+            current_manifest_entry.append({dir: []})
+
+            # Move the current_manifest_entry inside the list.
+            current_manifest_entry = current_manifest_entry[-1][dir]
+        # The path is a file.
+        elif is_file:
+            # If the file already exists in the manifest, there is no point adding it again.
+            exists = False
+            for subfile in current_manifest_entry:
+                if dir == subfile:
+                    exists = True
+                    break
+            if exists:
+                continue
+
+            current_manifest_entry.append(dir)
+
+    user.fs.dumpManifest(manifest)
+    # for dir in path.split("/")[:len(path.split("/"))-1]:
+    #     print(dir)
 
     return {"message": f"Successfully uploaded {file.filename}"}
