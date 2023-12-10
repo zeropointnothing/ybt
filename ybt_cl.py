@@ -33,6 +33,8 @@ print(" OK!")
 
 # Ensure the API is reachable
 print("Checking server...", end=" - ")
+# Force the output to appear.
+sys.stdout.flush()
 
 try:
     r = requests.get(BASE_URL)
@@ -43,9 +45,12 @@ if r.status_code == 200:
     print("OK!")
 else:
     print("FAILED: Check your internet connection and ensure the servers are online.")
+    print(r.json())
 
 # Check for a user
 print("Checking user...", end=" - ")
+sys.stdout.flush()
+
 if os.path.exists("./ybt.json"):
     with open("./ybt.json", "r") as f:
         config = json.load(f)
@@ -72,6 +77,7 @@ jobs = []
 if os.path.isfile(upload_path):
     print("\npath is file... entering single upload mode.")
     print(f"Uploading {upload_path}...", end=" - ")
+    sys.stdout.flush()
     jobs.append({"job": 1, "status": -1})
 
     file = {'file': open(upload_path, 'rb')}
@@ -106,7 +112,8 @@ if os.path.isdir(upload_path):
     top_dir = upload_path.split("/")[-1]
 
     for i, file in enumerate(path_files):
-        print(f"Uploading {file}...", end=" - ")        
+        print(f"Uploading {file}...", end=" - ")
+        sys.stdout.flush()
 
         dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
         jobs.append({"job": i, "status": -1})
