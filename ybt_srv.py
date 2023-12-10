@@ -186,6 +186,11 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
     if not os.path.exists(f"./fs/{user.name}/{dirfr}"):
         os.makedirs(f"./fs/{user.name}/{dirfr}")
 
+    # Reject root level manifest.json files to prevent replacement.
+    print(path)
+    if path == f"./fs/{user.name}/manifest.json":
+        raise HTTPException(409, "Cannot upload root-level 'manifest.json' file!")
+
     # Download the file.    
     try:
         with open(path, 'wb') as f:
@@ -268,5 +273,5 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
 
     return {"message": f"Successfully uploaded {file.filename}"}
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0")
+# if __name__ == "__main__":
+#     uvicorn.run(app, host="0.0.0.0")
