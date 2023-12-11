@@ -13,6 +13,10 @@ This will explain how to properly use YBT.
 
 ## Setup
 
+Before you can use YBT, you will have to tell it where the server is located. To do so, please set the `YBT_SERVER_IP` environment variable for your system to point at the running YBT server.
+ex: `http://172.217.22.14:8000/api/` Contact a system administrator or look up the specific method for your OS.
+
+
 In order to keep everyone's files seperate and safe, your data is protected with an account. That means in order to use YBT, you will have to tell it who you are.
 
 *this also applies to you if you are getting this error when trying to upload: FAILED: Config is invalid.*
