@@ -3,5 +3,5 @@ __pycache__
 test.py
 build
 dist
-.spec
+*.spec
 fs
