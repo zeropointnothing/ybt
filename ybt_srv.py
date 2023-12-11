@@ -287,8 +287,31 @@ def getmanifest(usr: str, psw: str):
 
     return manifest
 
-logging.basicConfig(filename='uvicorn.log', level=logging.INFO)  # Change the level as needed
+# Configure logging to a file
+logging_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        },
+    },
+    "handlers": {
+        "file_handler": {
+            "class": "logging.FileHandler",
+            "formatter": "default",
+            "filename": "uvicorn.log",
+        },
+    },
+    "loggers": {
+        "uvicorn": {
+            "handlers": ["file_handler"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run(app, host="0.0.0.0", log_config=logging_config)
     # uvicorn.run(app)
