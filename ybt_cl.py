@@ -212,23 +212,12 @@ if not os.path.exists(upload_path):
     print("FAILED: That path does not exist!")
     sys.exit(1)
 
-print(" OK!")
+print("OK!")
 
 # Ensure the API is reachable
 print("Checking server...", end=" ")
 # Force the output to appear.
-sys.stdout.flush()
-
-try:
-    r = requests.get(BASE_URL)
-except requests.ConnectionError:
-    print("FAILED: Check your internet connection and ensure the servers are online.")
-    sys.exit(1)
-if r.status_code == 200:
-    print("OK!")
-else:
-    print(f"FAILED: Server responded with: {r.status_code}")
-    print(r.json())
+makeAPIRequest()
 
 # Check for a user
 print("Checking user...", end=" ")
