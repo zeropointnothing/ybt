@@ -6,7 +6,7 @@ This is the server-side script for YBT.
 import os
 import json
 import uvicorn
-import genuid
+import logging
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
@@ -287,6 +287,7 @@ def getmanifest(usr: str, psw: str):
 
     return manifest
 
+logging.basicConfig(filename='uvicorn.log', level=logging.INFO)  # Change the level as needed
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0")
