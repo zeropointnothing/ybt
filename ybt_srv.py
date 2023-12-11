@@ -273,5 +273,21 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
 
     return {"message": f"Successfully uploaded {file.filename}"}
 
+@app.get("/api/fs/getmanifest")
+def getmanifest(usr: str, psw: str):
+    try:
+        user = User(usr, psw)
+    except PermissionError:
+        raise HTTPException(401, "Failed to auth.")
+    
+    try:
+        manifest = user.fs.loadManifest()
+    except FileSystem.NoSuchUser:
+        raise HTTPException(500, "Unable to find user's manifest. Try again later.")
+
+    return manifest
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0")
+    # uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run(app)
