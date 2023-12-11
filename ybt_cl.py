@@ -15,6 +15,9 @@ from time import sleep
 BASE_URL = "http://192.168.1.189:8000/api/"
 # BASE_URL = "http://127.0.0.1:8000/api/"
 
+# Ensure we run from the location of the executable.
+os.chdir(os.path.dirname(__file__))
+
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
