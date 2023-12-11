@@ -18,6 +18,7 @@ BASE_URL = "http://192.168.1.189:8000/api/"
 # Ensure we run from the location of the executable.
 os.chdir(os.path.dirname(__file__))
 
+# CLI Arguments.
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
@@ -50,10 +51,14 @@ def authorizeUser():
     """
     if os.path.exists("./ybt.json"):
         with open("./ybt.json", "r") as f:
-            config = json.load(f)
+            try:
+                config = json.load(f)
+            except json.JSONDecodeError:
+                print("FAILED: Config is invalid.")
+                sys.exit()
             config: dict
 
-        if config["username"] and config["password"]:
+        if config.get("username") and config.get("password"):
             r = requests.get(BASE_URL+f"users/auth?usr={config["username"]}&psw={config["password"]}")
             if r.status_code == 200:
                 print("OK!")
@@ -273,12 +278,13 @@ if os.path.isdir(upload_path):
         print(f"Uploading {file}...", end=" ")
         sys.stdout.flush()
 
+        # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
         dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
         jobs.append({"job": i, "status": -1})
 
         file = {'file': open(file, 'rb')}
         r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
-        
+
         if r.status_code == 200:
             print("OK!")
             jobs[i]["status"] = 1

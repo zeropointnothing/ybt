@@ -1,5 +1,6 @@
 __pycache__
 .venv
+.devcontainer
 test.py
 build
 dist

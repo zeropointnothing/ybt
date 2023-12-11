@@ -173,6 +173,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
         raise HTTPException(404, "Could not load user manifest. Aborting.")
 
     # path.join doesn't work with a leading slash.
+    dirfr = dirfr.removeprefix("/")
     if dirfr.startswith("/"):
         return HTTPException(422, "Invalid path name.")
 
