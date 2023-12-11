@@ -11,6 +11,29 @@ YBT stores your files on a seperate computer. But in order to do this, it needs 
 
 This will explain how to properly use YBT.
 
+## Setup
+
+In order to keep everyone's files seperate and safe, your data is protected with an account. That means in order to use YBT, you will have to tell it who you are.
+
+*this also applies to you if you are getting this error when trying to upload: FAILED: Config is invalid.*
+
+To set up YBT, run the executable with the `-s` or `--setup` flag.
+```
+ybt.exe -s
+
+ybt.exe --setup
+```
+
+YBT will walk you through the setup process, and if all goes well, the file `ybt.json` will be created. You can look inside, but be careful! Messing with these values can prevent you from uploading correctly!
+
+*for those who wish to do it themselves, the `ybt.json` file is formatted like so:*
+```json
+{
+    "username": "YOURUSERNAMEHERE",
+    "password": "YOURPASSWORDHERE"
+}
+```
+
 ## Single File Uploads
 You can upload just one file to YBT's servers. To do so, simply run the executable like so:
 
@@ -18,18 +41,18 @@ ex. uploading a text file:
 ```
 ybt.exe "C:/Users/me/OneDrive/Desktop/hello.txt"
 ```
-will upload to: root/hello.txt
+this will upload to: root/hello.txt
 
 ### NOTE 
 YBT will assume you want to upload the file to "root", AKA the top level of your backup folder.
 
-To specify the folder to backup the file to, use the -t or --top argument.
+To specify the folder to backup the file to, use the `-t` or `--top` flag.
 
 ex.
 ```
 ybt.exe "C:/Users/me/OneDrive/Desktop/hello.txt" -t "Documents/funthings"
 ```
-will upload as: root/Documents/funthings/hello.txt
+this will upload as: root/Documents/funthings/hello.txt
 
 ## Folder Uploads
 
@@ -39,10 +62,23 @@ ex. uploading your entire Documents folder.
 ```
 ybt.exe "C:/Users/me/OneDrive/Documents"
 ```
-will upload all files and their folders (and the files inside those too) to: root/Documents
+this will upload all files and their folders (and the files inside those too) to: root/Documents
 
 ### NOTE
-This does not support the -t argument. Supplying it will do nothing.
+This does not support the `-t` flag. Supplying it will do nothing.
+
+You cannot upload a file named `manifest.json` to the root of your backup folder. This is a system file for YBT and cannot be overwritten. Any attempt to do so will fail.
+
+## The Get Command
+If you would like to see the files you have already uploaded to YBT, you can do so with the `-g` or `--get` flag. This will print out a tree view of all your files.
+
+
+To use this, run the YBT executable like so:
+```
+ybt.exe -g
+
+ybt.exe --get
+```
 
 # File Conflicts
 
