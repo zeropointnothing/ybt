@@ -47,10 +47,14 @@ def authorizeUser():
     """
     if os.path.exists("./ybt.json"):
         with open("./ybt.json", "r") as f:
-            config = json.load(f)
+            try:
+                config = json.load(f)
+            except json.JSONDecodeError:
+                print("FAILED: Config is invalid.")
+                sys.exit()
             config: dict
 
-        if config["username"] and config["password"]:
+        if config.get("username") and config.get("password"):
             r = requests.get(BASE_URL+f"users/auth?usr={config["username"]}&psw={config["password"]}")
             if r.status_code == 200:
                 print("OK!")
