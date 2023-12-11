@@ -187,7 +187,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
         os.makedirs(f"./fs/{user.name}/{dirfr}")
 
     # Reject root level manifest.json files to prevent replacement.
-    print(path)
+    # print(path)
     if path == f"./fs/{user.name}/manifest.json":
         raise HTTPException(409, "Cannot upload root-level 'manifest.json' file!")
 
@@ -197,7 +197,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
             while contents := file.file.read(1024 * 1024):
                 f.write(contents)
     except Exception as e:
-        print(e)
+        # print(e)
         raise HTTPException(400, f"There was an error uploading the file: {e}")
     finally:
         file.file.close()
@@ -287,31 +287,31 @@ def getmanifest(usr: str, psw: str):
 
     return manifest
 
-# Configure logging to a file
-logging_config = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        },
-    },
-    "handlers": {
-        "file_handler": {
-            "class": "logging.FileHandler",
-            "formatter": "default",
-            "filename": "uvicorn.log",
-        },
-    },
-    "loggers": {
-        "uvicorn": {
-            "handlers": ["file_handler"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
+# # Configure logging to a file
+# logging_config = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "formatters": {
+#         "default": {
+#             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+#         },
+#     },
+#     "handlers": {
+#         "file_handler": {
+#             "class": "logging.FileHandler",
+#             "formatter": "default",
+#             "filename": "uvicorn.log",
+#         },
+#     },
+#     "loggers": {
+#         "uvicorn": {
+#             "handlers": ["file_handler"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#     },
+# }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", log_config=logging_config)
+    uvicorn.run(app, host="0.0.0.0")
     # uvicorn.run(app)
