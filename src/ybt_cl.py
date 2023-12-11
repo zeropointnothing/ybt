@@ -27,8 +27,15 @@ import json
 import sys
 from time import sleep
 
-BASE_URL = "http://192.168.1.189:8000/api/"
+# This should be http://YBTSERVERIP:8000/api/
+BASE_URL = os.environ.get("YBT_SERVER_IP", None)
+# For debugging:
 # BASE_URL = "http://127.0.0.1:8000/api/"
+
+if not BASE_URL:
+    print("Unable to determine YBT server IP! Please set it with the \"YBT_SERVER_IP\" env variable!")
+    sys.exit()
+
 
 # Ensure we run from the location of the executable.
 os.chdir(os.path.dirname(__file__))
