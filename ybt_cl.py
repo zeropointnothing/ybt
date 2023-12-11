@@ -12,8 +12,8 @@ import json
 import sys
 from time import sleep
 
-# BASE_URL = "http://192.168.1.189:8000/api/"
-BASE_URL = "http://127.0.0.1:8000/api/"
+BASE_URL = "http://192.168.1.189:8000/api/"
+# BASE_URL = "http://127.0.0.1:8000/api/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
