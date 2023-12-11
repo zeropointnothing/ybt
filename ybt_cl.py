@@ -15,6 +15,7 @@ from time import sleep
 BASE_URL = "http://192.168.1.189:8000/api/"
 # BASE_URL = "http://127.0.0.1:8000/api/"
 
+# CLI Arguments.
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
@@ -274,12 +275,13 @@ if os.path.isdir(upload_path):
         print(f"Uploading {file}...", end=" ")
         sys.stdout.flush()
 
+        # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
         dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
         jobs.append({"job": i, "status": -1})
 
         file = {'file': open(file, 'rb')}
         r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
-        
+
         if r.status_code == 200:
             print("OK!")
             jobs[i]["status"] = 1
