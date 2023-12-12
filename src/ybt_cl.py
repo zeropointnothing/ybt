@@ -87,6 +87,9 @@ def authorizeUser():
             elif r.status_code == 401:
                 print("FAILED: Failed to login user. Ensure both your username and password is correct.")
                 sys.exit(1)
+            elif r.status_code == 500:
+                print("FAILED: Internal Server Error.")
+                sys.exit(1)
             else:
                 print("FAILED: Could not authorize for an unknown reason.")
                 sys.exit()
