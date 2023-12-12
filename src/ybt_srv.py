@@ -25,6 +25,9 @@ import logging
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
+# Force YBT to run inside the src folder.
+os.chdir(os.path.dirname(__file__))
+
 # VARS #
 
 USR_MANIFEST = "./fs/manifest.json"
@@ -329,5 +332,23 @@ def getmanifest(usr: str, psw: str):
 # }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0")
-    # uvicorn.run(app)
+    invalid_manifest = False
+    if os.path.exists("./fs/manifest.json"):
+        with open("./fs/manifest.json", "w") as f:
+            data: dict = json.load(f)
+        
+        if not data.get("users"):
+            invalid_manifest = True
+    else:
+        invalid_manifest = True
+    
+    if invalid_manifest:
+        if not os.path.exists("./fs"): os.mkdir("./fs")
+        with open("./fs/manifest.json", "w") as f:
+            print("fs Manifest was invalid or missing. Recreating.")
+            json.dump({
+                "users": []
+            }, f, indent=2)
+
+    # uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run(app)
