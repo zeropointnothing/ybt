@@ -333,8 +333,8 @@ def getmanifest(usr: str, psw: str):
 
 if __name__ == "__main__":
     invalid_manifest = False
-    if os.path.exists("./fs/manifest.json"):
-        with open("./fs/manifest.json", "w") as f:
+    if os.path.exists(USR_MANIFEST):
+        with open(USR_MANIFEST, "r") as f:
             data: dict = json.load(f)
         
         if not data.get("users"):
@@ -343,8 +343,10 @@ if __name__ == "__main__":
         invalid_manifest = True
     
     if invalid_manifest:
-        if not os.path.exists("./fs"): os.mkdir("./fs")
-        with open("./fs/manifest.json", "w") as f:
+        parent_folder = os.path.dirname(USR_MANIFEST)
+
+        if not os.path.exists(parent_folder): os.makedirs(parent_folder)
+        with open(USR_MANIFEST, "w") as f:
             print("fs Manifest was invalid or missing. Recreating.")
             json.dump({
                 "users": []
