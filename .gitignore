@@ -2,6 +2,7 @@ __pycache__
 .venv
 .devcontainer
 test.py
+ybt.json
 build
 dist
 *.spec
