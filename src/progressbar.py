@@ -104,10 +104,9 @@ class ProgressBar:
                 if newmsg not in current_io and newmsg:
                     current_io.append(newmsg)
 
-            if current_io != self.__last_io:
-                # Clear the line, in case the progress bar is occupying it. 
-                print("\r\033[K", file=self.__STDOUT, end="\r")
-                
+            # Clear the line, in case the progress bar is occupying it. 
+            print("\r\033[K", file=self.__STDOUT, end="\r")
+            if current_io != self.__last_io:                
                 for msg in current_io:
                     if msg not in self.__last_io:
                         print(msg.split("__", 1)[1], file=self.__STDOUT)
