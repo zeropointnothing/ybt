@@ -20,6 +20,9 @@ class ProgressBar:
         Example
         ---
         >>> with ProgressBar(90, "Hello!", " ", "*") as bar:
+        >>>     # Changes the default spinner. Accepts either a string of characters or a list.
+        >>>     # bar.spinner = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+        >>>     # bar.spinner = ["_", "_", "_", "-", "`", "`", "'", "´", "-", "_", "_", "_"]
         >>>     for i, item in enumerate(range(90)):
         >>>         print(f"Iteration: {i}")
         >>>         print("Hello, world!")
