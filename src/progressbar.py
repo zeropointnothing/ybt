@@ -2,8 +2,9 @@
 Progress Bar Module.
 """
 import sys, os
-from io import StringIO
 import time
+import threading
+from io import StringIO
 from typing import Iterable
 
 class ProgressBar:
@@ -25,6 +26,7 @@ class ProgressBar:
         >>>         bar.bar()
         >>>         sleep(0.1)
         
+        args
         ---
         @title: (str) Displayed in front of the progress bar.
         @empty: (str) The character(s) to use for empty spaces. Defaults to `-`
@@ -43,11 +45,14 @@ class ProgressBar:
         self.empty = empty
         self.fill = fill
         self.size = size
+        self.spinner = "/-\\|"
 
         # Private
+        self.__running = True
         self.__count = len(range(self.MAX))
         self.__start = time.time()
         self.__index = 0
+        self.__spinner_index = 0
         self.__last_io = []
         self.__STDOUT = None
         self.__IO = None
@@ -71,7 +76,7 @@ class ProgressBar:
         
         if not self.size or os.get_terminal_size().columns != self.size:
             # Determine the size of the bar dynamically.
-            self.size = (os.get_terminal_size().columns-2) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty))
+            self.size = (os.get_terminal_size().columns-4) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty))
         
         x = int(self.size*j/count)
 
@@ -95,10 +100,20 @@ class ProgressBar:
             self.__last_io = current_io
 
 
-        final_str = f"{self.title}[{self.fill*x}{(self.empty*(self.size-x))}] " + end_str
+        final_str = f"{self.title}[{self.fill*x}{(self.empty*(self.size-x))}] {self.spinner[self.__spinner_index]} " + end_str
+        self.__spinner_index += 1
+        self.__spinner_index %= len(self.spinner)
         if len(final_str) > os.get_terminal_size().columns:
             raise ValueError("Width larger than console!")
         print(final_str, end="", file=self.__STDOUT, flush=True)
+
+    def __loop(self):
+        """
+        Bar loop. Allows for the bar to update without anything actually changing.
+        """
+        while self.__running:
+            self.__show(self.__index+1, self.__start, self.__count)
+            time.sleep(0.2)
 
     def __enter__(self):
         # Save whatever stdout is so we can restore it later.
@@ -108,17 +123,24 @@ class ProgressBar:
         self.__IO = StringIO()
         sys.stdout = self.__IO
 
+        t = threading.Thread(target=self.__loop)
+        # Dies when main thread dies.
+        t.daemon = True
+        t.start()
+
         # Return ourself to expose ProgressBar.
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Restore stdout to whatever it was before.
         sys.stdout = self.__STDOUT
+        # Ensure our seperate thread does actually exit.
+        self.__running = False
         print("\n", end="", flush=True, file=self.__STDOUT)
 
     def bar(self):
         """
         Moves the bar forward one.
         """
-        self.__show(self.__index+1, self.__start, self.__count)
+        # self.__show(self.__index+1, self.__start, self.__count)
         self.__index += 1
