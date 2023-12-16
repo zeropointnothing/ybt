@@ -26,6 +26,7 @@ import os
 import json
 import sys
 from time import sleep
+from progressbar import ProgressBar
 
 # This should be http://YBTSERVERIP:8000/api/
 BASE_URL = os.environ.get("YBT_SERVER_IP", None)
@@ -298,27 +299,28 @@ if os.path.isdir(upload_path):
 
     # Get the top directory to upload into.
     top_dir = upload_path.split("/")[-1]
-
-    for i, file in enumerate(path_files):
-        print(f"Uploading {file}...", end=" ")
-        sys.stdout.flush()
-
-        # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
-        dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
-        jobs.append({"job": i, "status": -1})
-
-        file = {'file': open(file, 'rb')}
-        r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
-
-        if r.status_code == 200:
-            print("OK!")
-            jobs[i]["status"] = 1
-        elif r.status_code == 404:
-            print(f"FAILED: Unable to locate user backup storage.")
-            sys.exit()
-        else:
-            print("FAILED")
-            jobs[i]["status"] = 0
+    with ProgressBar(path_files, "Uploading...") as bar:
+        for i, file in enumerate(path_files):
+            print(f"Uploading {file}...", end=" ")
+            sys.stdout.flush()
+    
+            # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
+            dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
+            jobs.append({"job": i, "status": -1})
+    
+            file = {'file': open(file, 'rb')}
+            r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
+    
+            if r.status_code == 200:
+                print("OK!")
+                jobs[i]["status"] = 1
+            elif r.status_code == 404:
+                print(f"FAILED: Unable to locate user backup storage.")
+                sys.exit()
+            else:
+                print("FAILED")
+                jobs[i]["status"] = 0
+            bar.bar()
 
 success = 0
 failed = 0
