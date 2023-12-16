@@ -70,14 +70,20 @@ class ProgressBar:
 
         mins, sec = divmod(remaining, 60)
 
+        # Get the current spinner, or replace it with the finish symbol.
+        if self.__index != self.MAX:
+            spinner = self.spinner[self.__spinner_index]
+        else:
+            spinner = "✓"
+
         # Assemble the end string for the final bar.
         time_str = f"{int(mins):02}:{sec:05.2f}"
         end_str = f"{j}/{count} est: {time_str}"
         
-        if not self.size or os.get_terminal_size().columns != self.size:
+        if not self.size or os.get_terminal_size().columns > self.size:
             # Determine the size of the bar dynamically.
-            self.size = (os.get_terminal_size().columns-4) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty))
-        
+            self.size = (os.get_terminal_size().columns-4) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty)) - len(spinner)
+
         x = int(self.size*j/count)
 
         # Check if external things have been printed.
@@ -100,7 +106,8 @@ class ProgressBar:
             self.__last_io = current_io
 
 
-        final_str = f"{self.title}[{self.fill*x}{(self.empty*(self.size-x))}] {self.spinner[self.__spinner_index]} " + end_str
+        final_str = f"{self.title}[{self.fill*x}{(self.empty*(self.size-x))}] {spinner} " + end_str
+
         self.__spinner_index += 1
         self.__spinner_index %= len(self.spinner)
         if len(final_str) > os.get_terminal_size().columns:
@@ -136,7 +143,10 @@ class ProgressBar:
         sys.stdout = self.__STDOUT
         # Ensure our seperate thread does actually exit.
         self.__running = False
-        print("\n", end="", flush=True, file=self.__STDOUT)
+
+        # Ensure that we show the final value.
+        self.__show(self.__index, self.__start, self.__count)
+        print("\n", end="", flush=True)
 
     def bar(self):
         """
