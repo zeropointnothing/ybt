@@ -23,8 +23,8 @@ class ProgressBar:
         >>>     for i, item in enumerate(range(90)):
         >>>         print(f"Iteration: {i}")
         >>>         print("Hello, world!")
-        >>>         bar.bar()
         >>>         sleep(0.1)
+        >>>         bar.bar() # This should always be called last.
         
         args
         ---
