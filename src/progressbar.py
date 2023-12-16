@@ -11,7 +11,7 @@ class ProgressBar:
     """
     Progress bar. lets go.
     """
-    def __init__(self, items: int | Iterable, title="", empty="-", fill="=", size: int | None = None) -> None:
+    def __init__(self, items: int | Iterable, title="", empty="-", fill="=", resize: int | None = None) -> None:
         """
         The actual progress bar.
 
@@ -44,7 +44,8 @@ class ProgressBar:
         self.title = title
         self.empty = empty
         self.fill = fill
-        self.size = size
+        self.size = 0
+        self.resize = resize
         self.spinner = "/-\\|"
 
         # Private
@@ -79,10 +80,12 @@ class ProgressBar:
         # Assemble the end string for the final bar.
         time_str = f"{int(mins):02}:{sec:05.2f}"
         end_str = f"{j}/{count} est: {time_str}"
-        
+
         if not self.size or os.get_terminal_size().columns > self.size:
             # Determine the size of the bar dynamically.
-            self.size = (os.get_terminal_size().columns-4) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty)) - len(spinner)
+            self.size = (os.get_terminal_size().columns-6) - len(end_str) - len(self.title) - (len(self.fill)+len(self.empty)) - len(spinner)
+        if self.resize:
+            self.size = self.resize
 
         x = int(self.size*j/count)
 
@@ -111,7 +114,7 @@ class ProgressBar:
         self.__spinner_index += 1
         self.__spinner_index %= len(self.spinner)
         if len(final_str) > os.get_terminal_size().columns:
-            raise ValueError("Width larger than console!")
+            return
         print(final_str, end="", file=self.__STDOUT, flush=True)
 
     def __loop(self):
