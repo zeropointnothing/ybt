@@ -122,6 +122,9 @@ class ProgressBar:
         Bar loop. Allows for the bar to update without anything actually changing.
         """
         while self.__running:
+            if self.__index == self.MAX:
+                self.__running = False
+                break
             self.__show(self.__index+1, self.__start, self.__count)
             time.sleep(0.2)
 
