@@ -70,6 +70,8 @@ class ProgressBar:
 
         Size has to be supplied because Python is confused otherwise.
         """
+        if not self.__IO:
+            raise ValueError("IO was never assigned!")
 
         remaining = ((time.time() - start) / j) * (count - j)
 
