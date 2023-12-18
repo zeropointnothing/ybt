@@ -31,6 +31,7 @@ class ProgressBar:
         
         args
         ---
+        @items: (str) Either the amount of expected items, or the list to be iterated over.
         @title: (str) Displayed in front of the progress bar.
         @empty: (str) The character(s) to use for empty spaces. Defaults to `-`
         @fill: (str) The character(s) to use for filled spaces. Defaults to `=`
