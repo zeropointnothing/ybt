@@ -40,7 +40,7 @@ BASE_URL = os.environ.get("YBT_SERVER_IP", None)
 # wRule 3: Root (*:)
 # wRule 4: User(s) folder (*:/Users/**)
 # wRule 5: System Folder (*:/Windows)
-FORBIDDEN = ["^/$", "^/home/?([A-Za-z0-9]+)?/?$", ".:$", "^[A-Za-z]:/Users/?([A-Za-z0-9]+)?/?$", ".:/Windows/?$"]
+FORBIDDEN = ["^/$", "^/home/?([A-Za-z0-9]+)?/?$", ".:/?$", "^[A-Za-z]:/Users/?([A-Za-z0-9]+)?/?$", ".:/Windows/?$"]
 
 if not BASE_URL:
     print("Unable to determine YBT server IP! Please set it with the \"YBT_SERVER_IP\" env variable!")
@@ -245,6 +245,9 @@ elif args.setup:
 if not args.path:
     print("Please supply a path!")
     sys.exit(1)
+
+# Force the path formatting.
+args.path = os.path.abspath(args.path)
 
 upload_path = args.path.replace("\\", "/")
 endpath = upload_path.split("/")[-1]
