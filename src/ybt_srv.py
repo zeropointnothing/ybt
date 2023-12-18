@@ -115,7 +115,8 @@ class FileSystem():
         """
         try:
             with open(self.__man_path, "w") as f:
-                return json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2)
+                return data
         except FileNotFoundError:
             raise self.NoSuchUser(f"User '{self.__user.name}' does not exist, or their manifest is missing.")
 
