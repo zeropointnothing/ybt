@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import argparse
+import re
 import requests
 import os
 import json
@@ -32,6 +33,14 @@ from progressbar import ProgressBar
 BASE_URL = os.environ.get("YBT_SERVER_IP", None)
 # For debugging:
 # BASE_URL = "http://127.0.0.1:8000/api/"
+
+# Forbidden upload directories. (most are system folders)
+# lRule 0: Root (/)
+# lRule 1: User(s) folder (/home/**)
+# wRule 3: Root (*:)
+# wRule 4: User(s) folder (*:/Users/**)
+# wRule 5: System Folder (*:/Windows)
+FORBIDDEN = ["^/$", "^/home/?([A-Za-z0-9]+)?/?$", ".:$", "^[A-Za-z]:/Users/?([A-Za-z0-9]+)?/?$", ".:/Windows/?$"]
 
 if not BASE_URL:
     print("Unable to determine YBT server IP! Please set it with the \"YBT_SERVER_IP\" env variable!")
@@ -241,9 +250,13 @@ upload_path = args.path.replace("\\", "/")
 endpath = upload_path.split("/")[-1]
 
 print(f"Checking '{upload_path}'...", end=" ")
+regex = [pattern for pattern in FORBIDDEN if re.search(pattern, upload_path)]
 
 if not os.path.exists(upload_path):
     print("FAILED: That path does not exist!")
+    sys.exit(1)
+elif regex:
+    print(f"FAILED: Path violates the following rule(s): {", ".join(regex)}")
     sys.exit(1)
 
 print("OK!")
@@ -299,6 +312,8 @@ if os.path.isdir(upload_path):
 
     # Get the top directory to upload into.
     top_dir = upload_path.split("/")[-1]
+    print(path_files)
+    sys.exit()
     with ProgressBar(path_files, "Uploading...") as bar:
         for i, file in enumerate(path_files):
             print(f"Uploading {file}...", end=" ")
