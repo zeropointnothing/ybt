@@ -112,7 +112,7 @@ def authorizeUser():
         print("FAILED: Could not find the ybt.json config file! Please run YBT with the -s flag to create it.")
         sys.exit()
 
-def makeAPIRequest(url: str = "", post: bool = False) -> any:
+def makeAPIRequest(url: str = "", post: bool = False):
     """
     Make an API request and print either OK or FAILED based on the result.
 
