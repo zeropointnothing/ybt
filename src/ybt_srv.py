@@ -202,7 +202,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
         return HTTPException(422, "Invalid path name.")
 
     # Figure out the correct path based on the contents of dirfr.
-    path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename))
+    path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename)) # type: ignore
     # To prevent weird bugs, replace all backslashes with slashes.
     path = path.replace("\\", "/")
     dirfr = dirfr.replace("\\", "/")
