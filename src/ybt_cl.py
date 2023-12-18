@@ -315,8 +315,7 @@ if os.path.isdir(upload_path):
 
     # Get the top directory to upload into.
     top_dir = upload_path.split("/")[-1]
-    print(path_files)
-    sys.exit()
+
     with ProgressBar(path_files, "Uploading...") as bar:
         for i, file in enumerate(path_files):
             print(f"Uploading {file}...", end=" ")
