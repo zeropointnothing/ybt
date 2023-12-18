@@ -22,11 +22,16 @@ import os
 import json
 import uvicorn
 import logging
+import argparse
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
 # Force YBT to run inside the src folder.
 os.chdir(os.path.dirname(__file__))
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--test", action="store_true", help="Run in testing mode: Uvicorn Host will be set to localhost instead of 0.0.0.0 (port forward host).")
+args = parser.parse_args()
 
 # VARS #
 
@@ -352,5 +357,9 @@ if __name__ == "__main__":
                 "users": []
             }, f, indent=2)
 
-    uvicorn.run(app, host="0.0.0.0")
-    # uvicorn.run(app)
+    # In case 0.0.0.0 does not loop back through localhost
+    if not args.test:
+        uvicorn.run(app, host="0.0.0.0")
+    else:
+        print("WARNING: Running in test mode! This server will not be accessible outside of localhost!")
+        uvicorn.run(app)
