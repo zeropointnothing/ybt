@@ -54,7 +54,7 @@ class ProgressBar:
 
         # Private
         self.__running = True
-        self.__count = len(range(self.MAX))
+        self.__count = len(range(self.MAX)) # type: ignore
         self.__start = time.time()
         self.__index = 0
         self.__spinner_index = 0
