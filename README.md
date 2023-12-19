@@ -88,7 +88,7 @@ ybt.exe --get
 
 If a file you are uploading already exists in it's YBT backup copy location, it will be overwritten.
 
-As of now, files cannot be removed from YBT servers through the YBT executable. If you would like a file to be removed, please contact me and I will remove it for you.
+As of now, files cannot be removed from YBT servers through the YBT executable. If you would like a file to be removed, please contact a server admin and they will have to remove it for you.
 
 # Upload Rules
 To protect your system (and bandwidth), there are rules hard-coded into YBT that prevent it from uploading certain directories. Here are those rules:
@@ -113,5 +113,3 @@ To protect your system (and bandwidth), there are rules hard-coded into YBT that
 ---
 
 Trying to upload to any of these directories will fail, giving you the *"Path violates the following rule(s)"* error
-=======
-As of now, files cannot be removed from YBT servers through the YBT executable. If you would like a file to be removed, please contact a server admin and they will have to remove it for you.
