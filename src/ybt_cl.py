@@ -42,6 +42,8 @@ BASE_URL = os.environ.get("YBT_SERVER_IP", None)
 # wRule 5: System Folder (*:/Windows)
 FORBIDDEN = ["^/$", "^/home/?([A-Za-z0-9]+)?/?$", ".:/?$", "^[A-Za-z]:/Users/?([A-Za-z0-9]+)?/?$", ".:/Windows/?$"]
 
+VERSION = "2.0.0-alpha"
+
 if not BASE_URL:
     print("Unable to determine YBT server IP! Please set it with the \"YBT_SERVER_IP\" env variable!")
     sys.exit()
@@ -56,6 +58,7 @@ parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
 parser.add_argument("-g", "--get", action="store_true", help="Get a list of all files currently uploaded to YBT's server.")
 parser.add_argument("-s", "--setup", action="store_true", help="Enter setup mode to create or log into an account.")
+parser.add_argument("-v", "--version", action="store_true", help="Display the current YBT version.")
 args = parser.parse_args()
 
 # FUNCTIONS #
@@ -177,6 +180,10 @@ def print_tree(data: dict, indent=''):
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
 ###
+
+if args.version:
+    print(f"YourBackupTool {VERSION}")
+    sys.exit(0)
 
 if args.get:
     print("Checking server...", end=" ")
