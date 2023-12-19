@@ -22,11 +22,16 @@ import os
 import json
 import uvicorn
 import logging
+import argparse
 import hashlib
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
 # Force YBT to run inside the src folder.
 os.chdir(os.path.dirname(__file__))
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--test", action="store_true", help="Run in testing mode: Uvicorn Host will be set to localhost instead of 0.0.0.0 (port forward host).")
+args = parser.parse_args()
 
 # VARS #
 
@@ -110,7 +115,8 @@ class FileSystem():
         """
         try:
             with open(self.__man_path, "w") as f:
-                return json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2)
+                return data
         except FileNotFoundError:
             raise self.NoSuchUser(f"User '{self.__user.name}' does not exist, or their manifest is missing.")
 
@@ -196,7 +202,7 @@ def putfile(usr: str, psw: str, dirfr: str = "", file: UploadFile = File(...)):
         return HTTPException(422, "Invalid path name.")
 
     # Figure out the correct path based on the contents of dirfr.
-    path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename))
+    path: str = os.path.join(f"./fs/{user.name}", os.path.join(dirfr, file.filename)) # type: ignore
     # To prevent weird bugs, replace all backslashes with slashes.
     path = path.replace("\\", "/")
     dirfr = dirfr.replace("\\", "/")
@@ -352,5 +358,9 @@ if __name__ == "__main__":
                 "users": []
             }, f, indent=2)
 
-    uvicorn.run(app, host="0.0.0.0")
-    # uvicorn.run(app)
+    # In case 0.0.0.0 does not loop back through localhost
+    if not args.test:
+        uvicorn.run(app, host="0.0.0.0")
+    else:
+        print("WARNING: Running in test mode! This server will not be accessible outside of localhost!")
+        uvicorn.run(app)

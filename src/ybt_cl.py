@@ -21,16 +21,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import argparse
+import re
 import requests
 import os
 import json
 import sys
 from time import sleep
+from progressbar import ProgressBar
 
 # This should be http://YBTSERVERIP:8000/api/
 BASE_URL = os.environ.get("YBT_SERVER_IP", None)
 # For debugging:
 # BASE_URL = "http://127.0.0.1:8000/api/"
+
+# Forbidden upload directories. (most are system folders)
+# lRule 0: Root (/)
+# lRule 1: User(s) folder (/home/**)
+# wRule 3: Root (*:)
+# wRule 4: User(s) folder (*:/Users/**)
+# wRule 5: System Folder (*:/Windows)
+FORBIDDEN = ["^/$", "^/home/?([A-Za-z0-9]+)?/?$", ".:/?$", "^[A-Za-z]:/Users/?([A-Za-z0-9]+)?/?$", ".:/Windows/?$"]
+
+VERSION = "2.0.0-alpha"
 
 if not BASE_URL:
     print("Unable to determine YBT server IP! Please set it with the \"YBT_SERVER_IP\" env variable!")
@@ -46,6 +58,7 @@ parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
 parser.add_argument("-g", "--get", action="store_true", help="Get a list of all files currently uploaded to YBT's server.")
 parser.add_argument("-s", "--setup", action="store_true", help="Enter setup mode to create or log into an account.")
+parser.add_argument("-v", "--version", action="store_true", help="Display the current YBT version.")
 args = parser.parse_args()
 
 # FUNCTIONS #
@@ -102,7 +115,7 @@ def authorizeUser():
         print("FAILED: Could not find the ybt.json config file! Please run YBT with the -s flag to create it.")
         sys.exit()
 
-def makeAPIRequest(url: str = "", post: bool = False) -> any:
+def makeAPIRequest(url: str = "", post: bool = False):
     """
     Make an API request and print either OK or FAILED based on the result.
 
@@ -167,6 +180,10 @@ def print_tree(data: dict, indent=''):
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
 ###
+
+if args.version:
+    print(f"YourBackupTool {VERSION}")
+    sys.exit(0)
 
 if args.get:
     print("Checking server...", end=" ")
@@ -236,13 +253,20 @@ if not args.path:
     print("Please supply a path!")
     sys.exit(1)
 
+# Force the path formatting.
+args.path = os.path.abspath(args.path)
+
 upload_path = args.path.replace("\\", "/")
 endpath = upload_path.split("/")[-1]
 
 print(f"Checking '{upload_path}'...", end=" ")
+regex = [pattern for pattern in FORBIDDEN if re.search(pattern, upload_path)]
 
 if not os.path.exists(upload_path):
     print("FAILED: That path does not exist!")
+    sys.exit(1)
+elif regex:
+    print(f"FAILED: Path violates the following rule(s): {", ".join(regex)}")
     sys.exit(1)
 
 print("OK!")
@@ -299,26 +323,28 @@ if os.path.isdir(upload_path):
     # Get the top directory to upload into.
     top_dir = upload_path.split("/")[-1]
 
-    for i, file in enumerate(path_files):
-        print(f"Uploading {file}...", end=" ")
-        sys.stdout.flush()
-
-        # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
-        dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
-        jobs.append({"job": i, "status": -1})
-
-        file = {'file': open(file, 'rb')}
-        r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
-
-        if r.status_code == 200:
-            print("OK!")
-            jobs[i]["status"] = 1
-        elif r.status_code == 404:
-            print(f"FAILED: Unable to locate user backup storage.")
-            sys.exit()
-        else:
-            print("FAILED")
-            jobs[i]["status"] = 0
+    with ProgressBar(path_files, "Uploading...") as bar:
+        for i, file in enumerate(path_files):
+            print(f"Uploading {file}...", end=" ")
+            sys.stdout.flush()
+    
+            # DirectoryFromRoot. This will place the file in subfolders instead of just in root.
+            dirfr: str = top_dir + "/" + os.path.dirname(file.split(upload_path)[1]).removeprefix("\\")
+            jobs.append({"job": i, "status": -1})
+    
+            file = {'file': open(file, 'rb')}
+            r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
+    
+            if r.status_code == 200:
+                print("OK!")
+                jobs[i]["status"] = 1
+            elif r.status_code == 404:
+                print(f"FAILED: Unable to locate user backup storage.")
+                sys.exit()
+            else:
+                print("FAILED")
+                jobs[i]["status"] = 0
+            bar.bar()
 
 success = 0
 failed = 0
