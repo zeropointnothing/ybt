@@ -26,6 +26,7 @@ import requests
 import os
 import json
 import sys
+import subprocess
 from time import sleep
 from progressbar import ProgressBar
 
@@ -58,6 +59,7 @@ parser.add_argument("path", nargs='?', default=None, help="The path to backup.")
 parser.add_argument("-t","--top", help="For single file uploads, choose the folder to upload into. This will also create the directory if needed.")
 parser.add_argument("-g", "--get", action="store_true", help="Get a list of all files currently uploaded to YBT's server.")
 parser.add_argument("-s", "--setup", action="store_true", help="Enter setup mode to create or log into an account.")
+parser.add_argument("-w", "--watch", action="store_true", help="Watch a directory for changes.")
 parser.add_argument("-v", "--version", action="store_true", help="Display the current YBT version.")
 args = parser.parse_args()
 
@@ -77,6 +79,11 @@ def exc(exc_type, exc_value, exc_tb):
     sys.exit(1)
 
 sys.excepthook = exc
+
+def test():
+    while True:
+        print("test")
+        sleep(1)
 
 def authorizeUser():
     """
@@ -270,6 +277,39 @@ elif regex:
     sys.exit(1)
 
 print("OK!")
+
+if args.watch:
+    print("Watching path...")
+    cached_files = []
+
+    # Get EVERY file inside the directory.
+    for path, subdirs, files in os.walk(upload_path):
+        for name in files:
+            cached_files.append({"path": os.path.join(path, name), "modified": os.stat(os.path.join(path, name)).st_mtime})
+
+    while True:
+        sleep(1)
+        watched_files = []
+        for path, subdirs, files in os.walk(upload_path):
+            for name in files:
+                watched_files.append({"path": os.path.join(path, name), "modified": os.stat(os.path.join(path, name)).st_mtime})
+        
+        for file in watched_files:
+            try:
+                index = cached_files.index(file)
+            except ValueError:
+                index = False
+            
+            if index is False or cached_files[index]["modified"] != watched_files[index]["modified"]:
+                print(f"{path} changed. Uploading...\n")
+                if os.path.exists("./ybt_cl.py"): # source code support
+                    subprocess.Popen(["python", "./ybt_cl.py", file["path"]])
+                elif os.path.exists("./ybt.exe"):
+                    subprocess.Popen(["./ybt.exe", file["path"]])
+                else:
+                    print("No supported executable found!!!")
+
+        cached_files = watched_files
 
 # Ensure the API is reachable
 print("Checking server...", end=" ")
