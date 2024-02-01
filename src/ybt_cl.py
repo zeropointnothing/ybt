@@ -27,7 +27,10 @@ import os
 import json
 import sys
 import subprocess
+import base64
 from time import sleep
+from io import StringIO
+import encryption
 from progressbar import ProgressBar
 
 # This should be http://YBTSERVERIP:8000/api/
@@ -332,7 +335,17 @@ if os.path.isfile(upload_path):
     sys.stdout.flush()
     jobs.append({"job": 1, "status": -1})
 
-    file = {'file': open(upload_path, 'rb')}
+    original_file = open(upload_path, 'rb')
+    original_contents = original_file.read()
+
+    key = encryption.gen_key(config["password"].encode())
+
+    encrypted_contents = encryption.full_encrypt(base64.b64encode(original_contents), key)
+
+    # Mock file to make FastAPI happy.
+    file = StringIO(encrypted_contents.decode())
+    file.name = original_file.name
+
 
     if args.top:
         args.top = args.top.replace("\\", "/")
@@ -340,7 +353,9 @@ if os.path.isfile(upload_path):
     else:
         dirfr = ""
 
-    r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files=file)
+    r = requests.post(BASE_URL+f"fs/put?usr={config["username"]}&psw={config["password"]}&dirfr={dirfr}", files={'file': file})
+    original_file.close()
+
     if r.status_code == 200:
         print("OK!")
         jobs[0]["status"] = 1
